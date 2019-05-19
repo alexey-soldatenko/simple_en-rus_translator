@@ -68,7 +68,8 @@ def main():
 
                 translation = get_translation_from_db(search, c)
                 if translation is not None:
-                    print("\nTranslation:\n", translation)
+                    colored_translation = "\x1b[96m{}\x1b[m".format(translation)
+                    print("\n", colored_translation)
                 else:
                     print("\nTranslation not found!")
                 word_on_screen = ""
@@ -77,7 +78,7 @@ def main():
                 CACHE_NEXT = []
                 is_need_prompt = True
         elif cmd == UNKNOWN:
-            print("\nNot valid command!\n")
+            print("\nNot valid command!")
             is_need_prompt = True
 
 if __name__ == '__main__':
