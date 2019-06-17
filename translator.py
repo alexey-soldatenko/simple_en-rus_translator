@@ -1,6 +1,6 @@
 import sqlite3
 
-from custom_std import (
+from custom_io import (
     clear_stdout_previous_characters,
     get_user_input,
 )
