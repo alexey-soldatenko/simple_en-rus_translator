@@ -104,17 +104,18 @@ class Command:
 
 
     def _run_translate_command(self, user_input):
-        with sqlite3.connect('en-rus.db') as conn:
-            c = conn.cursor()
+        if user_input:
+            with sqlite3.connect('en-rus.db') as conn:
+                c = conn.cursor()
 
-            translation = self._get_translation_from_db(user_input)
-            if translation is not None:
-                colored_translation = "\x1b[96m{}\x1b[m".format(translation)
-                print("\n", colored_translation)
-            else:
-                print("\nTranslation not found!")
-            self.current_search_word = ""
-            self._history.add(user_input)
+                translation = self._get_translation_from_db(user_input)
+                if translation is not None:
+                    colored_translation = "\x1b[96m{}\x1b[m".format(translation)
+                    print("\n", colored_translation)
+                else:
+                    print("\nTranslation not found!")
+                self._history.add(user_input)
+        self.current_search_word = ""
         self.need_prompt = True
 
 

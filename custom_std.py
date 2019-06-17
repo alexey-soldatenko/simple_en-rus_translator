@@ -48,8 +48,9 @@ def get_user_input(buf: str) -> tuple:
     command = "ENTER" 
     while True:
         ch = get_characters_from_stdin()
-        if buf and ch == NEW_LINE:
-            break
+        if ch == NEW_LINE:
+            if buf.strip():
+                break
         elif ch == BACKSPACE:
             if buf:
                 buf = buf[:-1]
