@@ -6,6 +6,7 @@ from custom_io import (
 )
 
 ADD = "ADD"
+CMD_LIST = "CMDLIST"
 TRANSLATE = "TRANSLATE"
 PREVIOUS = "PREVIOUS"
 NEXT = "NEXT"
@@ -15,6 +16,7 @@ UNKNOWN = "UNKNOWN"
 
 SYSTEM_COMMAND = {
     "!add": ADD,
+    "!cmdlist": CMD_LIST,
     "!quit": QUIT,
     "!help": HELP
 }
@@ -76,6 +78,14 @@ class Command:
             r = db_cursor.fetchone()
             return r[0] if r is not None else None
 
+    def _run_cmdlist_command(self, **kwargs):
+        print()
+        for k in sorted(SYSTEM_COMMAND):
+            print(k)
+        self.current_search_word = ""
+        self.need_prompt = True
+
+
     def _run_add_command(self, user_input):
         eng, *translate = user_input.split()
         rus = " ".join(translate).strip()
@@ -96,7 +106,7 @@ class Command:
              "|    This is very simple en-rus translator. |\n"
              "|                                           |\n"
              "|    To execute command put '!' before.     |\n"
-             "|    For example: !quit, !help              |\n"
+             "|    For example: !cmdlist                  |\n"
              "---------------------------------------------\n")
         print(s)
         self.current_search_word = ""
