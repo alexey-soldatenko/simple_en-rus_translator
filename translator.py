@@ -12,7 +12,6 @@ PREVIOUS = "PREVIOUS"
 NEXT = "NEXT"
 HELP = "HELP"
 QUIT = "QUIT"
-UNKNOWN = "UNKNOWN"
 
 SYSTEM_COMMAND = {
     "!add": ADD,
@@ -21,6 +20,9 @@ SYSTEM_COMMAND = {
     "!help": HELP
 }
 
+
+class CommandNotFoundError(Exception):
+    pass
 
 class ExitCommand(Exception):
     pass
@@ -59,6 +61,9 @@ class Command:
 
     def get_system_command(self, phrase):
         cmd, *remainder = phrase.split()
+        if cmd not in SYSTEM_COMMAND:
+            raise CommandNotFoundError(
+                "Command '{}' not found in {}".format(cmd, [k for k in SYSTEM_COMMAND.keys()]))
         return SYSTEM_COMMAND[cmd], " ".join(remainder)
 
     def execute(self, command: str, **kwargs):
@@ -84,7 +89,6 @@ class Command:
             print(k)
         self.current_search_word = ""
         self.need_prompt = True
-
 
     def _run_add_command(self, user_input):
         eng, *translate = user_input.split()
@@ -112,7 +116,6 @@ class Command:
         self.current_search_word = ""
         self.need_prompt = True
 
-
     def _run_translate_command(self, user_input):
         if user_input:
             with sqlite3.connect('en-rus.db') as conn:
@@ -128,7 +131,6 @@ class Command:
         self.current_search_word = ""
         self.need_prompt = True
 
-
     def _run_next_command(self, user_input):
         if self._history.has_next():
             next_word = self._history.get_next(user_input)
@@ -136,7 +138,6 @@ class Command:
             self.current_search_word = next_word
             print(next_word, end="", flush=True)
         self.need_prompt = False
-
 
     def _run_previous_command(self, user_input):
         if self._history.has_previous():
@@ -146,10 +147,8 @@ class Command:
             print(previous, end="", flush=True)
         self.need_prompt = False
 
-
     def _run_quit_command(self, **kwargs):
         raise ExitCommand()
-
 
     def _run_unknown_command(self, **kwargs):
         print("\nNot valid command!")
@@ -179,13 +178,16 @@ class Translator:
 
     def main_loop(self):
         self.execute_command("help")
-        try:
-            while True:
+        while True:
+            try:
                 self.set_prompt_if_need()
                 input_phrase, key_press = get_user_input(self._command.current_search_word)
                 self.parse_and_execute(key_press, input_phrase)
-        except ExitCommand:
-            print("\nBuy!")
+            except ExitCommand:
+                print("\nBuy!")
+                break
+            except Exception as exc:
+                print("\n", str(exc))
 
 
     
