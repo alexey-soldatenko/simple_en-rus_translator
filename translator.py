@@ -3,6 +3,8 @@ import sqlite3
 from custom_io import (
     clear_stdout_previous_characters,
     get_user_input,
+    move_cursor_to_left,
+    move_cursor_to_right,
 )
 
 ADD = "ADD"
@@ -11,12 +13,12 @@ TRANSLATE = "TRANSLATE"
 PREVIOUS = "PREVIOUS"
 NEXT = "NEXT"
 HELP = "HELP"
-QUIT = "QUIT"
+EXIT = "EXIT"
 
 SYSTEM_COMMAND = {
     "!add": ADD,
     "!cmdlist": CMD_LIST,
-    "!quit": QUIT,
+    "!exit": EXIT,
     "!help": HELP
 }
 
@@ -147,7 +149,7 @@ class Command:
             print(previous, end="", flush=True)
         self.need_prompt = False
 
-    def _run_quit_command(self, **kwargs):
+    def _run_exit_command(self, **kwargs):
         raise ExitCommand()
 
     def _run_unknown_command(self, **kwargs):

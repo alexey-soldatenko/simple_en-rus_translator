@@ -7,6 +7,8 @@ import io
 ESCAPE = '\x1b'
 UP = '[A'
 DOWN = '[B'
+RIGHT = '[C'
+LEFT = '[D'
 BACKSPACE = '\x7f'
 NEW_LINE = '\n'
 
@@ -17,8 +19,8 @@ def get_characters_from_stdin(char_count=1):
     return stdin_buffer.read(char_count)
 
 
-def write_characters_to_stdout(ch):
-    sys.stdout.write(ch)
+def write_characters_to_stdout(target_string):
+    sys.stdout.write(target_string)
     sys.stdout.flush()
 
 
@@ -37,8 +39,17 @@ def set_cbreak(func):
 
 def clear_stdout_previous_characters(num=1):
     for _ in range(num):
-        write_characters_to_stdout('\x1b[D\x1b[K')
+        move_cursor_to_left()
+    # delete everything to the right of the cursor
+    write_characters_to_stdout('\x1b[K')
 
+def move_cursor_to_left(num=1):
+    for _ in range(num):
+        write_characters_to_stdout('\x1b[D')
+
+def move_cursor_to_right(num=1):
+    for _ in range(num):
+        write_characters_to_stdout('\x1b[C')
 
 @set_cbreak
 def get_user_input(buf: str) -> tuple:
@@ -46,15 +57,21 @@ def get_user_input(buf: str) -> tuple:
     Return tuple with result user input and command.
     """
     command = "ENTER" 
+    current_position = len(buf)
     while True:
         ch = get_characters_from_stdin()
         if ch == NEW_LINE:
             if buf.strip():
                 break
         elif ch == BACKSPACE:
-            if buf:
-                buf = buf[:-1]
+            if buf and current_position > 0:
+                buf = buf[0:current_position - 1] + buf[current_position:]
+                current_position -= 1
                 clear_stdout_previous_characters()
+                # add remaining part
+                write_characters_to_stdout(buf[current_position:])
+                # go to current position
+                move_cursor_to_left(len(buf[current_position:]))
         elif ch == ESCAPE:
             esc_cmd = get_characters_from_stdin(char_count=2)
             if esc_cmd == UP:
@@ -63,8 +80,17 @@ def get_user_input(buf: str) -> tuple:
             if esc_cmd == DOWN:
                 command = "DOWN"
                 break
+            if esc_cmd == LEFT:
+                if current_position > 0:
+                    current_position -= 1
+                    move_cursor_to_left()
+            if esc_cmd == RIGHT:
+                if current_position < len(buf):
+                    current_position += 1
+                    move_cursor_to_right()
         else:
             buf += ch
+            current_position += 1
             write_characters_to_stdout(ch)
     buf = buf.strip()
     return buf, command
