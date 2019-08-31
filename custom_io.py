@@ -15,6 +15,13 @@ NEW_LINE = '\n'
 
 stdin_buffer = io.TextIOWrapper(sys.stdin.buffer, encoding='utf-8') 
 
+
+class Key:
+    UP = "UP"
+    DOWN = "DOWN"
+    ENTER = "ENTER"
+
+
 def get_characters_from_stdin(char_count=1):
     return stdin_buffer.read(char_count)
 
@@ -56,7 +63,7 @@ def get_user_input(buf: str) -> tuple:
     """
     Return tuple with result user input and command.
     """
-    command = "ENTER" 
+    command = Key.ENTER
     current_position = len(buf)
     while True:
         ch = get_characters_from_stdin()
@@ -75,10 +82,10 @@ def get_user_input(buf: str) -> tuple:
         elif ch == ESCAPE:
             esc_cmd = get_characters_from_stdin(char_count=2)
             if esc_cmd == UP:
-                command = "UP"
+                command = Key.UP
                 break
             if esc_cmd == DOWN:
-                command = "DOWN"
+                command = Key.DOWN
                 break
             if esc_cmd == LEFT:
                 if current_position > 0:
@@ -89,9 +96,11 @@ def get_user_input(buf: str) -> tuple:
                     current_position += 1
                     move_cursor_to_right()
         else:
-            buf += ch
+            new_str = ch + buf[current_position:]
+            buf = buf[0:current_position] + new_str
             current_position += 1
-            write_characters_to_stdout(ch)
+            write_characters_to_stdout(new_str)
+            move_cursor_to_left(len(new_str)-1)
     buf = buf.strip()
     return buf, command
 
