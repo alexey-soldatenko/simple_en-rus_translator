@@ -37,7 +37,7 @@ class Translator:
                 print("\nBuy!")
                 break
             except Exception as exc:
-                print("\n", str(exc))
+                print("\n", exc)
 
 
 def main():

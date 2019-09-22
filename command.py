@@ -2,6 +2,7 @@ import sqlite3
 
 from custom_io import clear_stdout_previous_characters
 from history import History
+import online_translate
 
 
 class CommandNotFoundError(Exception):
@@ -48,6 +49,24 @@ class Command:
             r = db_cursor.fetchone()
             return r[0] if r is not None else None
 
+    def _get_translation_from_online(self, word):
+        translated = online_translate.get_translation(word)
+        if translated:
+            self._save_to_db(word, translated)
+        return translated
+
+    def _save_to_db(self, origin, translated):
+        if self._get_translation_from_db(origin) is None and translated:
+            with sqlite3.connect('en-rus.db') as conn:
+                c = conn.cursor()
+                c.execute("INSERT INTO dict VALUES('{origin}', '{translated}')".format(
+                    **vars()))
+                print("\nWord added succefuly.")
+        elif not translated:
+            print("\nEnter translation please.")
+        else:
+            print("\nTranslation found for this word.")
+
     def _run_cmdlist_command(self, **kwargs):
         print('\n', [k for k in sorted(self.SYSTEM_COMMAND)])
         self.current_search_word = ""
@@ -56,16 +75,7 @@ class Command:
     def _run_add_command(self, user_input):
         eng, *translate = user_input.split()
         rus = " ".join(translate).strip()
-        if self._get_translation_from_db(eng) is None and rus:
-            with sqlite3.connect('en-rus.db') as conn:
-                c = conn.cursor()
-                c.execute("INSERT INTO dict VALUES('{eng}', '{rus}')".format(
-                    **vars()))
-                print("\nWord added succefuly.")
-        elif not rus:
-            print("\nEnter translation please.")
-        else:
-            print("\nTranslation found for this word.")
+        self._save_to_db(eng, rus)
         self.need_prompt = True
 
     def _run_help_command(self, **kwargs):
@@ -81,16 +91,16 @@ class Command:
 
     def _run_translate_command(self, user_input):
         if user_input:
-            with sqlite3.connect('en-rus.db') as conn:
-                c = conn.cursor()
+            translation = self._get_translation_from_db(user_input)
+            if not translation:
+                translation = self._get_translation_from_online(user_input)
 
-                translation = self._get_translation_from_db(user_input)
-                if translation is not None:
-                    colored_translation = "\x1b[96m{}\x1b[m".format(translation)
-                    print("\n", colored_translation)
-                else:
-                    print("\nTranslation not found!")
-                self._history.add(user_input)
+            if translation:
+                colored_translation = "\x1b[96m{}\x1b[m".format(translation)
+                print("\n", colored_translation)
+            else:
+                print("\nTranslation not found!")
+            self._history.add(user_input)
         self.current_search_word = ""
         self.need_prompt = True
 
