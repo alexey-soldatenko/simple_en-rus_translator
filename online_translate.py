@@ -15,7 +15,8 @@ def get_translation(word: str) -> Optional[str]:
         response = requests.get(url)
         response.raise_for_status()
         translated_word = response.json()[0][0][0]
-        return translated_word.strip()
+        result = translated_word.strip() if translated_word != word else None
+        return result
     except (requests.exceptions.HTTPError,
             requests.exceptions.Timeout,
             IndexError) as exc:
